@@ -1,0 +1,84 @@
+#无需添加group:直接顶格
+#bedroom:
+#    name: 设备追踪
+#    entities:
+#      - device_tracker.iphone
+#      - device_tracker.xianjiedeipad
+#      - device_tracker.desktop34dj29o
+#default_view:
+#  view: yes
+#  entities:
+#    - group.bedroom
+#    - group.sence
+#    - group.micro_gen8
+#    - group.family
+
+#family:
+#  view: no
+#  entities:
+#    - group.all_devices
+weather:
+  name: 天气情况
+  view: yes
+  entities:
+    - group.air_quality
+    - group.hefeng
+
+air_quality:
+  name: 室外空气质量
+  view: no
+  entities:
+    - sensor.seasons
+    - sensor.air_index
+    - sensor.chinese_air_quality_index
+    - sensor.us_air_quality_index
+    - sensor.chinese_main_pollutant
+
+#和风天气
+hefeng:
+  name: 天气预报
+  view: no
+  entities:
+    - sensor.now_weather
+    - sensor.now_tmp
+    - sensor.1hour_weather
+    - sensor.today_weather_day
+    - sensor.now_weather
+    - sensor.now_tmp
+    - sensor.today_weather_day
+    - sensor.temp0_index
+    - sensor.tomorrowday_weather_day
+    - sensor.temp1_index
+    - sensor.oftertomorrowday_weather_day
+    - sensor.temp2_index
+
+bedroom:
+  name: 卧室
+  view: no
+  control: hidden
+  entities:
+    - light.gateway_light_34ce008d7fcf
+    - light.yeelight_strip_286c072f6ce6
+    - sensor.humidity_158d00016d19c7
+    - sensor.temperature_158d00016d19c7
+    - sensor.illumination_34ce008d7fcf
+    - binary_sensor.motion_sensor_158d0001218d6e
+    - binary_sensor.door_window_sensor_158d000121acf9
+    - switch.plug_158d000171786c
+    - climate.mi_acpartner
+
+sence:
+  name: 场景切换
+  view: no
+  control: hidden
+  entities:
+    - automation.switchxai_lamp_on
+    - automation.switchxai_lamp_off
+
+micro_gen8:
+  name: Gen8 状态
+  view: no
+  entities:
+    - sensor.hp_ilo_fan_speed
+    - sensor.hp_ilo_inlet_temperature
+    - sensor.cpu_temperature

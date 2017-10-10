@@ -1,0 +1,219 @@
+<link rel="import" href="hooks.html">
+<link rel="import" href="ha-config-custom-ui.html" async>
+<link rel="import" href="state-card-with-slider.html" async>
+
+<script>
+const SHOW_LAST_CHANGED_BLACKLISTED_CARDS = ['configurator'];
+class StateCardCustomUi extends Polymer.Element {
+  static get is() { return 'state-card-custom-ui'; }
+
+  static get properties() {
+    return {
+      hass: Object,
+
+      inDialog: {
+        type: Boolean,
+        value: false,
+      },
+
+      stateObj: Object,
+    };
+  }
+
+  static get observers() {
+    return [
+      'inputChanged(hass, inDialog, stateObj)',
+    ];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    const container = this.parentNode.parentNode;
+    if (container.tagName === 'DIV' &&
+        (container.classList.contains('state') || container.classList.contains('child-card'))) {
+      this._container = container;
+
+      // Since this doesn't actually change the background - no need to clear it.
+      container.style.setProperty(
+        'background-color', 'var(--paper-card-background-color, inherit)');
+
+      // Polyfill 'updateStyles'.
+      if (!container.updateStyles) {
+        container.updateStyles = (styles) => {
+          Object.keys(styles).forEach((key) => {
+            container.style.setProperty(key, styles[key]);
+          });
+        };
+      }
+    }
+    this._isAttached = true;
+    this.inputChanged(this.hass, this.inDialog, this.stateObj);
+  }
+
+  disconnectedCallback() {
+    this._isAttached = false;
+    if (this._container) {
+      this._container.updateStyles({ display: '', margin: '', padding: '' });
+      window.hassUtil.applyThemesOnElement(
+        this._container, this.hass.themes || { default_theme: 'default', themes: {} }, 'default');
+      this._container = null;
+    }
+    super.disconnectedCallback();
+  }
+
+  badgeMode(hass, stateObj, domain) {
+    const states = [];
+    if (domain === 'group') {
+      stateObj.attributes.entity_id.forEach((id) => {
+        const state = hass.states[id];
+        if (!state) {
+          /* eslint-disable no-console */
+          console.warn('Unknown ID ' + id + ' in group ' + stateObj.entity_id);
+          /* eslint-enable no-console */
+          return;
+        }
+        if (!stateObj.attributes.badges_list ||
+            stateObj.attributes.badges_list.indexOf(state.entity_id) >= 0) {
+          states.push(window.customUI.maybeChangeObject(
+            this, state, false /* inDialog */, false /* allowHidden */));
+        }
+      });
+    } else {
+      states.push(stateObj);
+      if (this._container) {
+        this._container.style.display = 'inline-block';
+        const params = { display: 'inline-block' };
+        if (this._container.classList.contains('state')) {
+          params.margin = '0 -6px';
+        }
+        this.updateStyles(params);
+      }
+    }
+    window.hassUtil.dynamicContentUpdater(
+      this,
+      'HA-BADGES-CARD',
+      { hass: hass, states: states });
+    // Since this variable only affects badges mode - no need to clean it up.
+    this.style.setProperty('--ha-state-label-badge-margin-bottom', '0');
+  }
+
+  cleanBadgeStyle() {
+    if (this._container) {
+      this._container.style.display = '';
+    }
+    this.updateStyles({ display: '', margin: '' });
+  }
+
+  applyThemes(hass, modifiedObj) {
+    let themeTarget = this;
+    let themeName = 'default';
+    if (this._container) {
+      themeTarget = this._container;
+    }
+    if (modifiedObj.attributes.theme_template) {
+      themeName = window.customUI.computeTemplate(
+        modifiedObj.attributes.theme_template,
+        hass,
+        hass.states,
+        modifiedObj,
+        modifiedObj.attributes) || themeName;
+    } else if (modifiedObj.attributes.theme) {
+      themeName = modifiedObj.attributes.theme;
+    }
+    window.hassUtil.applyThemesOnElement(
+      themeTarget, hass.themes || { default_theme: 'default', themes: {} }, themeName);
+  }
+
+  maybeHideEntity(modifiedObj) {
+    if (!modifiedObj) {
+      if (this.lastChild) {
+        this.removeChild(this.lastChild);
+      }
+      if (this._container) {
+        this._container.updateStyles({ margin: '0', padding: '0' });
+      }
+      return true;
+    }
+    if (this._container) {
+      this._container.updateStyles({ margin: '', padding: '' });
+    }
+    return false;
+  }
+
+  inputChanged(hass, inDialog, stateObj) {
+    if (!stateObj || !hass || !this._isAttached) return;
+    const domain = window.hassUtil.computeDomain(stateObj);
+    const modifiedObj = window.customUI.maybeChangeObject(
+      this, stateObj, inDialog, true /* allowHidden */);
+
+    if (this.maybeHideEntity(modifiedObj)) return;
+
+    this.applyThemes(hass, modifiedObj);
+
+    if (!inDialog && modifiedObj.attributes.state_card_mode === 'badges') {
+      this.badgeMode(hass, modifiedObj, domain);
+      return;
+    }
+    this.cleanBadgeStyle();
+
+    const params = {
+      hass: hass,
+      stateObj: modifiedObj,
+      inDialog: inDialog,
+    };
+    let stateCardType = window.hassUtil.stateCardType(hass, stateObj);
+    const secondaryStateCardType = modifiedObj.attributes.state_card_custom_ui_secondary;
+
+    if (domain === 'light') {
+      Object.assign(params, {
+        controlElement: 'ha-entity-toggle',
+        serviceMin: 'turn_off',
+        serviceMax: 'turn_on',
+        valueName: 'brightness',
+      });
+    } else if (domain === 'cover') {
+      Object.assign(params, {
+        controlElement: 'ha-cover-controls',
+        max: 100,
+        serviceMin: 'close_cover',
+        serviceMax: 'set_cover_position',
+        setValueName: 'position',
+        valueName: 'current_position',
+        nameOn: 'open',
+      });
+    } else if (stateCardType === 'toggle') {
+      Object.assign(params, {
+        controlElement: 'ha-entity-toggle',
+      });
+    } else if (stateCardType === 'display') {
+      Object.assign(params, {
+        controlElement: '',
+      });
+    }
+    if (!secondaryStateCardType &&
+       (domain === 'light' ||
+        domain === 'cover' ||
+        stateCardType === 'toggle' ||
+        stateCardType === 'display')) {
+      stateCardType = 'with-slider';
+      Object.assign(params, {
+        domain: domain,
+      });
+      if (stateObj.state === 'unavailable') {
+        Object.assign(params, {
+          controlElement: '',
+        });
+      }
+    } else if (modifiedObj.attributes.show_last_changed &&
+               SHOW_LAST_CHANGED_BLACKLISTED_CARDS.indexOf(stateCardType) === -1) {
+      params.inDialog = true;
+    }
+
+    window.hassUtil.dynamicContentUpdater(
+      this,
+      secondaryStateCardType || ('STATE-CARD-' + stateCardType.toUpperCase()),
+      params);
+  }
+}
+customElements.define(StateCardCustomUi.is, StateCardCustomUi);
+</script>

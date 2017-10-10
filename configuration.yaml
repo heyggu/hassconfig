@@ -1,0 +1,260 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: XXX
+  longitude: XXX
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 123
+  # metric for Metric, imperial for Imperial
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Asia/Shanghai
+  # Customization file
+  customize: !include customize.yaml
+  #packages: !include_dir_named packages
+  #sensorr: !include_dir_merge_list sensorr
+
+# Show links to resources in log and frontend
+#introduction:
+
+# Enables the frontend
+frontend:
+
+# Enables configuration UI
+config:
+
+#自定义 UI
+customizer:
+  custom_ui: local
+
+http:
+  # Uncomment this to add a password (recommended!)
+  # api_password: PASSWORD
+  # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+  # base_url: example.duckdns.org:8123
+
+# Checks for available updates
+# Note: This component will send some information about your system to
+# the developers to assist with development of Home Assistant.
+# For more information, please see:
+# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  # include_used_components: true
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time
+history:
+
+# View all events in a logbook
+logbook:
+
+# Track the sun
+#sun:
+
+# Weather prediction
+#sensor:
+#  - platform: yr
+
+# Text to speech
+tts:
+  - platform: google
+
+# 设备追踪
+device_tracker:
+  - platform: padavan_tracker
+    url: http://192.168.*/
+    username: admin
+    password: !secret password
+    #protocol: telnet
+    track_new_devices: no
+    interval_seconds: 10
+    consider_home: 60
+
+#空调伴侣
+climate:
+  - platform: mi_acpartner
+    name: mi_acpartner
+    host: 192.168.*
+    token: !secret token
+    target_temp: 26
+#   target_sensor:
+#    sync: 60
+#    customize:
+#      swing:
+#        top: 010501820000261801
+#        down: FEADASDSDSDSDSDSADSAFADSFASA
+#      fan:
+#        max: FEADASDSDSDSDSDSADSAFADSFASAD
+#        med: FEBDASDSDSDSDSDSADSAFADSFASAR
+#        min: 010501A20000261B01
+#空调伴侣-红外遥控
+switch:
+  - platform: mi_acpartner_ir
+    name: "mi_acpartner_ir"
+    host: 192.168.*
+    token: !secret token
+    
+xiaomi_aqara:
+  gateways:
+   - mac: 34CE008D7FCF
+     key: !secret key 
+
+# IFTTT
+#ifttt:
+#  key: !secret ifttt_key
+
+# 自定义传感器
+sensor:
+#CPU temp
+  - platform: command_line
+    name: CPU Temperature
+    command: "cat /sys/class/thermal/thermal_zone0/temp"
+    unit_of_measurement: "°C"
+    value_template: '{{ value | multiply(0.001) | round(1) }}'
+
+#Gen8
+  - platform: hp_ilo
+    host: 192.168.*
+    username: 
+    password: 
+    monitored_variables:
+      - name: Fan speed
+        #icon: mdi:fan
+        sensor_type: server_health
+        unit_of_measurement: '%'
+        value_template: '{{ ilo_data.fans["Fan 1"].speed[0] }}'
+      - name: Inlet temperature
+        #icon: mdi:thermometer
+        sensor_type: server_health
+        unit_of_measurement: '°C'
+        value_template: '{{ ilo_data.temperature["01-Inlet Ambient"].currentreading[0] }}'
+
+
+
+#空气质量
+  - platform: airvisual
+    api_key: !secret api_key
+    monitored_conditions:
+      - us
+      - cn
+    radius: 500
+
+  - platform: template
+    sensors:
+      air_index:
+        value_template: '{% if is_state("sensor.chinese_air_pollution_level", "Good") %}优{% elif is_state("sensor.chinese_air_pollution_level", "Moderate") %}中等{% elif is_state("sensor.chinese_air_pollution_level", "Unhealthy for Sensitive Groups") %}轻度污染{% elif is_state("sensor.chinese_air_pollution_level", "Unhealthy") %}不健康{% elif is_state("sensor.chinese_air_pollution_level", "Very Unhealthy") %}极不健康{% else %}有毒害{% endif %}'
+        friendly_name: '空气质量等级'
+#今日气温
+  - platform: template
+    sensors:
+      temp0_index:
+        unit_of_measurement: '°C'
+        value_template: '{{ states.sensor.today_mintmp.state }} - {{ states.sensor.today_maxtmp.state }}' 
+        friendly_name: '今日气温'
+#明日气温
+  - platform: template
+    sensors:
+      temp1_index:
+        unit_of_measurement: '°C'
+        value_template: '{{ states.sensor.tomorrowday_mintmp.state }} - {{ states.sensor.tomorrowday_maxtmp.state }}' 
+        friendly_name: '明日气温'
+#后天气温
+  - platform: template
+    sensors:
+      temp2_index:
+        unit_of_measurement: '°C'
+        value_template: '{{ states.sensor.oftertomorrowday_mintmp.state }} - {{ states.sensor.oftertomorrowday_maxtmp.state }}' 
+        friendly_name: '后天气温'
+#和风天气
+  - platform: HeWeather
+    api_key: !secret api_key
+    interval: 300
+    isShowWeatherPic: True
+    city: CN**
+    monitored_conditions:
+      # 当天预报
+      ToDay_forecast:
+        # 白天天气情况
+        - Weather_d
+        # 夜间天气情况
+        #- Weather_n
+        # 最高温度
+        - maxTmp
+        # 最低温度
+        - minTmp
+      # 明天预报
+      Tomorrow_forecast:
+        # 白天天气情况
+        - Weather_d
+        # 降水概率
+        - pop
+        # 最高温度
+        - maxTmp
+        # 最低温度
+        - minTmp
+      # 后天预报
+      OfterTomorrow_forecast:
+        # 白天天气情况
+        - Weather_d
+        # 降水概率
+        - pop
+        # 最高温度
+        - maxTmp
+        # 最低温度
+        - minTmp
+      # 1小时预报
+      1Hour_forecast:
+        # 天气情况
+        - Weather
+        - pop
+      # 即时预报
+      now:
+        # 天气情况
+        - Weather
+        # 温度
+        - tmp
+
+#季节
+  - platform: season
+    type: meteorological
+
+  - platform: template
+    sensors:
+      seasons:
+        value_template: '{% if is_state("sensor.season", "Spring") %}春天{% elif is_state("sensor.season", "Summer") %}夏天{% elif is_state("sensor.season", "Autumn") %}秋天{% else %}冬天{% endif %}'
+        friendly_name: '季节'
+        icon_template: >
+          {% if is_state("sensor.season", "Spring") %}
+            mdi:leaf
+          {% elif is_state("sensor.season", "Summer") %}
+            mdi:beach
+          {% elif is_state("sensor.season", "Autumn") %}
+            mdi:weather-windy-variant
+          {% else %}
+            mdi:snowflake
+          {% endif %}
+
+#UI插件
+panel_iframe:
+  #bridge UI
+  homebridge:
+    title: Homebridge
+    icon: mdi:home-automation
+    url: http://192.168.*
+
+  #router
+  padavan:
+    title: Router
+    icon: mdi:router-wireless
+    url: http://192.168.*/
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml

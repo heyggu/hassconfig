@@ -1,0 +1,35 @@
+#客厅光暗有人开灯
+- alias: switch.xai_lamp_on
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.motion_sensor_158d0001218d6e  #人体感应
+      from: 'off'
+      to: 'on'
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        after: '18:30:00'
+        before: '07:00:00'
+      - condition: numeric_state
+        entity_id: sensor.illumination_34ce008d7fcf #小米网关光感应
+        value_template: '{{ states.sensor.illumination_34ce008d7fcf.state| int }}'
+        below: 800
+
+  action:
+    - service: light.turn_on
+      entity_id: light.gateway_light_34ce008d7fcf  #灯
+
+- alias: switch.xai_lamp_off
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.motion_sensor_158d0001218d6e   #灯
+      from: 'on'
+      to: 'off'
+      for:
+        seconds: 10
+  action:
+    - service: light.turn_off
+      entity_id: light.gateway_light_34ce008d7fcf  #灯

@@ -1,0 +1,9 @@
+node_modules/
+bower_components/
+build/
+# IDE
+.idea/
+# Locally installed version
+www/
+custom_components/
+panels/

@@ -1,0 +1,135 @@
+fan.xiaomi_air_purifier_2:
+  friendly_name: 空气净化器
+
+climate.mi_acpartner:
+  friendly_name: 卧室空调
+
+sensor.chinese_air_pollution_level:
+  hidden: true
+
+sensor.chinese_air_quality_index:
+  friendly_name: 污染指数-中标
+
+sensor.chinese_main_pollutant:
+  friendly_name: 主要污染物
+
+sensor.us_air_pollution_level:
+  hidden: true
+
+sensor.us_air_quality_index:
+  friendly_name: 污染指数-美标
+
+sensor.us_main_pollutant:
+  hidden: true
+
+#小米网关&米家传感器本地化
+binary_sensor.motion_sensor_158d0001218d6e:
+  friendly_name: 人体传感器
+  #custom_ui_state_card: state-card-custom-ui
+  #extra_data_template: "剩余电量${attributes.battery_level}%"
+
+light.gateway_light_34ce008d7fcf:
+  friendly_name: 网关夜灯
+  icon: mdi:theme-light-dark
+
+sensor.humidity_158d00016d19c7:
+  friendly_name: 湿度
+  icon: mdi:water
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: "剩余电量${attributes.battery_level}%"
+
+sensor.temperature_158d00016d19c7:
+  friendly_name: 温度
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: "剩余电量${attributes.battery_level}%"
+
+binary_sensor.door_window_sensor_158d000121acf9:
+  friendly_name: 门厅
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: "剩余电量${attributes.battery_level}%"
+
+binary_sensor.switch_158d0001225f5e:
+  friendly_name: 无线开关
+  hidden: true
+  homebridge_hidden: true
+
+sensor.illumination_34ce008d7fcf:
+  friendly_name: 光照
+  hidden: true
+
+switch.plug_158d000171786c:
+  friendly_name: 床头台灯
+  custom_ui_state_card: state-card-custom-ui
+  extra_badge:
+   confirm_controls_show_lock: false
+   confirm_controls: true
+
+automation.switchxai_lamp_off:
+  friendly_name: 睡觉模式
+
+automation.switchxai_lamp_on:
+  friendly_name: 夜灯守护
+
+#Gen8
+
+sensor.hp_ilo_fan_speed:
+  friendly_name: 风扇
+  icon: mdi:fan
+sensor.hp_ilo_inlet_temperature:
+  friendly_name: 机箱温度
+sensor.cpu_temperature:
+  friendly_name: 树莓派温度
+
+
+#和风天气汉化
+sensor.now_weather:
+  friendly_name: 当前天气
+sensor.now_tmp:
+  friendly_name: 当前温度
+sensor.today_weather_day:
+  friendly_name: 今日天气
+sensor.today_maxtmp:
+  friendly_name: 今日最高温度
+  hidden: true
+sensor.today_mintmp:
+  friendly_name: 今日最低温度
+  hidden: true
+#加入降雨概率
+sensor.tomorrowday_weather_day:
+  friendly_name: 明日天气
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: >
+    return "降雨概率：" + entities["sensor.tomorrowday_pop"].state + "%"
+sensor.tomorrowday_maxtmp:
+  friendly_name: 明日最高温度
+  hidden: true
+sensor.tomorrowday_mintmp:
+  friendly_name: 明日最低温度
+  hidden: true
+sensor.oftertomorrowday_weather_day:
+  friendly_name: 后天天气
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: >
+    return "降雨概率：" + entities["sensor.oftertomorrowday_pop"].state + "%"
+sensor.oftertomorrowday_maxtmp:
+  friendly_name: 后天最高温度
+  hidden: true
+sensor.oftertomorrowday_mintmp:
+  friendly_name: 后天最低温度
+  hidden: true
+sensor.1hour_weather:
+  friendly_name: 1小时后天气
+  custom_ui_state_card: state-card-custom-ui
+  extra_data_template: >
+    return "降雨概率：" + entities["sensor.1hour_pop"].state + "%"
+sensor.1hour_pop:
+  hidden: true
+sensor.oftertomorrowday_pop:
+  hidden: true
+sensor.tomorrowday_pop:
+  hidden: true
+sensor.aqi:
+  hidden: true
+sensor.season:
+  hidden: true
+
